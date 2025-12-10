@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f4f4f4;
+        }
+
+        h1 { text-align: center; }
+
+        #container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        input, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+        }
+
+        #pseudo {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        #messages {
+            border: 1px solid #ddd;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            border-radius: 6px;
+        }
+
+        .msg {
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .author {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .time {
+            font-size: 11px;
+            color: #777;
+            margin-left: 5px;
+        }
+
+        #sendContainer {
+            display: flex;
+            gap: 10px;
+        }
+
+        #content {
+            flex: 1;
+        }
+
+        button {
+            background: #4A90E2;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #357ABD;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <h1>💬 Mini Chat</h1>
+
+    <input id="pseudo" placeholder="Votre pseudo">
+
+    <div id="messages"></div>
+
+    <div id="sendContainer">
+        <input id="content" placeholder="Votre message">
+        <button onclick="sendMessage()">Envoyer</button>
+    </div>
+</div>
+
+<script>
+// 👉 À REMPLACER par l'URL Render du backend
+const API_URL = "http://localhost:3001/api/messages";
+
+
+
+
+// --- Charger les messages ---
+async function loadMessages() {
+    try {
+        const res = await fetch(API_URL);
+        const msgs = await res.json();
+
+        const zone = document.getElementById("messages");
+        zone.innerHTML = "";
+
+        msgs.forEach(m => {
+            zone.innerHTML += `
+                <div class="msg">
+                    <span class="author">${m.author}</span>
+                    <span class="time">${m.time}</span><br>
+                    ${m.content}
+                </div>`;
+        });
+
+        zone.scrollTop = zone.scrollHeight;
+
+    } catch (err) {
+        console.error("Erreur chargement messages", err);
+    }
+}
+
+// --- Envoyer un message ---
+async function sendMessage() {
+    const author = document.getElementById("pseudo").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if (!author || !content) return alert("Pseudo + message obligatoires");
+
+    await fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ author, content })
+    });
+
+    document.getElementById("content").value = "";
+
+    loadMessages();
+}
+
+// Rafraîchissement automatique toutes les 4 sec
+setInterval(loadMessages, 4000);
+
+// Chargement initial
+loadMessages();
+</script>
+
+</body>
+</html>
+
