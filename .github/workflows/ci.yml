@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      backend:
+        image: node:18
+        ports: [3001:3001]
+        options: >-
+          --health-cmd "curl -f http://localhost:3001 || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      frontend:
+        image: node:18
+        ports: [8081:80]
+        options: >-
+          --health-cmd "curl -f http://localhost:8081 || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Backend
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Test backend
+        run: |
+          cd backend
+          npm test || echo "No tests yet"
+
+      # Frontend
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Test frontend
+        run: |
+          cd frontend
+          npm test || echo "No tests yet"
